@@ -103,19 +103,39 @@ int main() {
     client2 = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen);
     printf("[SERVER] Client 2 connected\n");
 
-    printf("[SERVER] Game starting. Client1 = X, Client2 = O\n");
+    // -------------------------
+    // Ask for player names
+    // -------------------------
+    char name1[50], name2[50];
+
+    send(client1, "Enter your name: ", 17, 0);
+    memset(name1, 0, sizeof(name1));
+    read(client1, name1, sizeof(name1)-1);
+    name1[strcspn(name1, "\n")] = '\0'; // remove newline
+
+    send(client2, "Enter your name: ", 17, 0);
+    memset(name2, 0, sizeof(name2));
+    read(client2, name2, sizeof(name2)-1);
+    name2[strcspn(name2, "\n")] = '\0';
+
+    printf("[SERVER] Players: %s (X) vs %s (O)\n", name1, name2);
+
+    printf("[SERVER] Game starting. %s = X, %s = O\n", name1, name2);
     printBoard();
 
+    // -------------------------
     // Game loop
+    // -------------------------
     while (1) {
         int currentClient = (turn == 1) ? client1 : client2;
+        char *currentName = (turn == 1) ? name1 : name2;
         char mark = (turn == 1) ? 'X' : 'O';
         int validMove = 0;
 
         while (!validMove) {
             // Ask for move
-            char msg[64];
-            sprintf(msg, "Your turn (Player %d - %c). Enter position (1-9): ", turn, mark);
+            char msg[128];
+            sprintf(msg, "Your turn, %s (%c). Enter position (1-9): ", currentName, mark);
             send(currentClient, msg, strlen(msg), 0);
 
             // Get move
@@ -149,8 +169,8 @@ int main() {
 
         // Check win
         if (checkWin()) {
-            char msg[64];
-            sprintf(msg, "Player %d (%c) wins!\n", turn, mark);
+            char msg[128];
+            sprintf(msg, "%s (%c) wins!\n", currentName, mark);
             send(client1, msg, strlen(msg), 0);
             send(client2, msg, strlen(msg), 0);
             break;

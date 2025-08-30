@@ -33,6 +33,20 @@ int main() {
 
     printf("[CLIENT] Connected to server.\n");
 
+    // -------------------------
+    // Receive name prompt and send name
+    // -------------------------
+    memset(buffer, 0, sizeof(buffer));
+    int valread = read(sock, buffer, 1024);
+    printf("%s", buffer);  // "Enter your name: "
+
+    char name[50];
+    fgets(name, sizeof(name), stdin);
+    send(sock, name, strlen(name), 0);
+
+    // -------------------------
+    // Game loop
+    // -------------------------
     while (1) {
         memset(buffer, 0, sizeof(buffer));
         int valread = read(sock, buffer, 1024);
